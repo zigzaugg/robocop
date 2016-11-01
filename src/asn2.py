@@ -258,7 +258,7 @@ def getNeighborY(x, y, dir):
 		return y-1
 
 def setAllCosts(map, x, y, cost):
-	if not visited[x][y]:
+	if not known[x][y]:
 		return
 	for dir in range(1, 5):
 		if not map.getNeighborObstacle(x, y, dir):
@@ -271,17 +271,20 @@ def setAllCosts(map, x, y, cost):
 def fillCostGrid(map, x, y):
 	for i in xrange(8):
 		for j in xrange(8):
-			map.setCost(x, y) = 1000
-	map.clearCostMap()
+			map.setCost(i, j, 1000)
+#	map.printCostMap()
+#	map.clearCostMap()
 	map.setCost(x, y, 0)
 	setAllCosts(map, x, y, 0)
+#	map.printCostMap()	
 	
 #######Cost
 
 def walkToGoal(map, x, y, d):
 	fillCostGrid(map, x, y)
 	map.printCostMap()
-
+	map.printObstacleMap()
+	print known
 	while True:
 		currentCost = map.getCost(Loc[0], Loc[1])
 		cost = [100,100,100,100]
@@ -318,22 +321,40 @@ def wrap(i):
 	return i
 	
 def surrounded(arr, x, y):
-	return 	((x<=0) or arr[x-1][y]) and
-			((y<=0) or arr[x][y-1]) and
-			((x>=7) or arr[x+1][y]) and
-			((y>=7) or arr[x][y+1])
+	if x < 0 or y < 0 or x > 7 or y > 7:
+		return False
+	toReturn = True
+	print x
+	print y
+	toReturn = toReturn and (x<=0 or arr[x-1][y])
+	toReturn = toReturn and (y<=0 or arr[x][y-1])
+	toReturn = toReturn and (x>=7 or arr[x+1][y])
+	toReturn = toReturn and (y>=7 or arr[x][y+1])
+	return toReturn
+#	return (x<=0 or arr[x-1][y]) and (y<=0 or arr[x][y-1]) and (x>=7 or arr[x+1][y]) and (y>=7 or arr[x][y+1])
+
+def setBoundWalls(map):
+	for i in range(8):
+		map.setObstacle(i, 0, 1, 4)
+		map.setObstacle(i, 7, 1, 2)
+		map.setObstacle(0, i, 1, 1)
+		map.setObstacle(7, i, 1, 3)
+
 
 def mapBuild():
+	global known
 	coolMap = EECSMap()
-	coolmap.clearObstacleMap()
-
-	IR_threshold = 100
+	coolMap.clearObstacleMap()
+	setBoundWalls(coolMap)
+	IR_threshold = 50
 	DMS_threshold = 1000
 
 	known = numpy.zeros((8,8))
 
 	while True:
+		print Loc
 		known[Loc[0]][Loc[1]] = 1
+		print known
 		if getSensorValue(2) > IR_threshold:
 			coolMap.setObstacle(Loc[0], Loc[1], 1, wrap(Dir-1))
 		if getSensorValue(1) > IR_threshold:
@@ -353,19 +374,26 @@ def mapBuild():
 		if surrounded(known, Loc[0], Loc[1]+1):
 			known[Loc[0]][Loc[1]+1] = 1
 		
-		fillCostGrid(coolmap, Loc[0], Loc[1])
+		fillCostGrid(coolMap, Loc[0], Loc[1])
 		closestX = Loc[0]
 		closestY = Loc[1]
 		closestDist = 1000000
 		for x in range(8):
 			for y in range(8):
-				if !known[x][y] and coolMap.getcost(x, y) < closestDist:
+				if (not known[x][y]) and coolMap.getCost(x, y) < closestDist:
 					closestX = x
 					closestY = y
-					closestDist = coolMap.getcost(x, y)
+					closestDist = coolMap.getCost(x, y)
 		if Loc[0] == closestX and Loc[1] == closestY:
 			break
-		walkToGoal(coolmap, closestX, closestY, 0)
+		
+		print Loc
+		print [closestX, closestY]
+		known[closestX][closestY] = 1
+		walkToGoal(coolMap, closestX, closestY, 0)
+		known[closestX][closestY] = 0
+
+	coolMap.printObstaclemap()
 		
 		
 
@@ -380,19 +408,19 @@ def findAllWalls(map):
 if __name__ == "__main__":
 	rospy.init_node('example_node', anonymous = True)
 	rospy.loginfo("Starting Group L Control Node...")
-	#signal.signal(signal.SIGINT, shutdown)
-	r = rospy.Rate(10) # 10hz
+	signal.signal(signal.SIGINT, shutdown)
+	r = rospy.Rate(4) # 10hz
 
 	global Loc 
 	global Dir
 	global turnTime
-	'''
+	
 	Loc = [int(sys.argv[1]), int(sys.argv[2])]
 	Dir = int(sys.argv[3])
-	goal = [int(sys.argv[4]), int(sys.argv[5])]
-	goalDir = int(sys.argv[6])
-	turnTime = float(sys.argv[7])
-	'''
+	'''goal = [int(sys.argv[4]), int(sys.argv[5])]
+	goalDir = int(sys.argv[6])'''
+	turnTime = float(sys.argv[4])
+	
 	
 	newMap = EECSMap()
 	newMap.printObstacleMap()
@@ -400,18 +428,17 @@ if __name__ == "__main__":
 	print("Path:")
 	print(getPath(newMap, goal[0], goal[1], goalDir))
 	'''
-	visited = numpy.zeros((8,8))
 	
-	for i in range(2,5):
-		for j in range(2, 5):
-			visited[i][j] = True
-	fillCostGrid(newMap, 2, 2)
-	newMap.printCostMap()
+	#turnAngle(2)
+	#turnAngle(2)
 	
-	#mapBuild()
+	mapBuild()
 	
 	while not rospy.is_shutdown():
 		# call function to get sensor value
 		# rospy.loginfo(getSensorValue(1))
 		r.sleep()
+		#rospy.loginfo("Sensor value at port %d: %f", 3, getSensorValue(3))
+		#rospy.loginfo("Sensor value at port %d: %f", 2, getSensorValue(2))
+		#rospy.loginfo("Sensor value at port %d: %f", 3, getSensorValue(3))
 
