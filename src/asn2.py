@@ -262,14 +262,20 @@ def setAllCosts(map, x, y, cost):
 		return
 	for dir in range(1, 5):
 		if not map.getNeighborObstacle(x, y, dir):
-			if map.getNeighborCost(x, y, dir) > cost + 1 or map.getNeighborCost(x, y, dir) == 0:
+			if map.getNeighborCost(x, y, dir) > cost + 1 or map.getNeighborCost(x, y, dir) == 1000:
 				map.setNeighborCost(x, y, dir, cost + 1)
 				setAllCosts(map, getNeighborX(x, y, dir), getNeighborY(x, y, dir), cost + 1)
 
+
+
 def fillCostGrid(map, x, y):
+	for i in xrange(8):
+		for j in xrange(8):
+			map.setCost(x, y) = 1000
 	map.clearCostMap()
-	setAllCosts(map, x, y, 0)
 	map.setCost(x, y, 0)
+	setAllCosts(map, x, y, 0)
+	
 #######Cost
 
 def walkToGoal(map, x, y, d):
@@ -303,16 +309,65 @@ def getPathSegment(map, sx, sy, gx, gy):
 
 #Finds if a block should never be returned to
 	
+	
+def wrap(i):
+	while i < 1:
+		i += 4
+	while i > 4:
+		i -= 4
+	return i
+	
+def surrounded(arr, x, y):
+	return 	((x<=0) or arr[x-1][y]) and
+			((y<=0) or arr[x][y-1]) and
+			((x>=7) or arr[x+1][y]) and
+			((y>=7) or arr[x][y+1])
+
 def mapBuild():
 	coolMap = EECSMap()
-	coolmap.clearObstacleMap
-	finished = False
-	visited = numpy.zeros((8,8))	
-	while not finished:
-		visited[Loc[0]][Loc[1]] = 1
+	coolmap.clearObstacleMap()
+
+	IR_threshold = 100
+	DMS_threshold = 1000
+
+	known = numpy.zeros((8,8))
+
+	while True:
+		known[Loc[0]][Loc[1]] = 1
+		if getSensorValue(2) > IR_threshold:
+			coolMap.setObstacle(Loc[0], Loc[1], 1, wrap(Dir-1))
+		if getSensorValue(1) > IR_threshold:
+			coolMap.setObstacle(Loc[0], Loc[1], 1, wrap(Dir+1))
+		if getSensorValue(3) > DMS_threshold:
+			coolMap.setObstacle(Loc[0], Loc[1], 1, Dir)
 		
-		if coolMap.getNeighborObstacle(Loc[0], Loc[1], Dir):
-			moveOne()
+		if surrounded(known, Loc[0]-1, Loc[1]):
+			known[Loc[0]-1][Loc[1]] = 1
+		
+		if surrounded(known, Loc[0]+1, Loc[1]):
+			known[Loc[0]+1][Loc[1]] = 1
+		
+		if surrounded(known, Loc[0], Loc[1]-1):
+			known[Loc[0]][Loc[1]-1] = 1
+		
+		if surrounded(known, Loc[0], Loc[1]+1):
+			known[Loc[0]][Loc[1]+1] = 1
+		
+		fillCostGrid(coolmap, Loc[0], Loc[1])
+		closestX = Loc[0]
+		closestY = Loc[1]
+		closestDist = 1000000
+		for x in range(8):
+			for y in range(8):
+				if !known[x][y] and coolMap.getcost(x, y) < closestDist:
+					closestX = x
+					closestY = y
+					closestDist = coolMap.getcost(x, y)
+		if Loc[0] == closestX and Loc[1] == closestY:
+			break
+		walkToGoal(coolmap, closestX, closestY, 0)
+		
+		
 
 
 
