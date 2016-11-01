@@ -289,7 +289,8 @@ def walkToGoal(map, x, y, d):
 			if not map.getNeighborObstacle(Loc[0], Loc[1], ii+1):
 				cost[ii] = map.getNeighborCost(Loc[0], Loc[1], ii+1)
 		if min(cost) >= currentCost:
-			turnAngle(d-Dir)
+			if not d==0:
+				turnAngle(d-Dir)
 			return currentCost
 		else:
 			moveDir(cost.index(min(cost))+1, map)
@@ -307,8 +308,6 @@ def getPathSegment(map, sx, sy, gx, gy):
 	return [(sx, sy)]
 
 #Finds if a block should never be returned to
-def noReturn(i, j):
-	pass
 	
 	
 def wrap(i):
