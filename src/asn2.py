@@ -144,7 +144,7 @@ def turn(speed, direction):
 	elif direction == 1:
 		setMotorWheelSpeed(6, speed)
 		setMotorWheelSpeed(5, speed)
-
+'''
 #motion combination 1
 def forward(speed):
 	LWheelCorrection = 0
@@ -169,7 +169,7 @@ def forwardOne():
 	stop()
 		
 '''
-motion combination2
+#motion combination2
 def forward(speed):
 	setMotorWheelSpeed(5, 1024+speed )
 	setMotorWheelSpeed(6, speed)
@@ -177,13 +177,19 @@ def forward(speed):
 def forwardOne():
 #don't call outside of "moveOne"
 	rospy.loginfo("Taking One Step")
-	r = rospy.Rate(4)
-	thresh = 20
+	r = rospy.Rate(5)
+	thresh = 300
+	#Lthresh = 150
 	correct = .2
-	while not rospy.is_shutdown():
+	n=0
+	while n<11:
+		n +=1
 		sensorL = getSensorValue(LSENSOR)
 		sensorR = getSensorValue(RSENSOR)
-		rospy.loginfo("Sensor value at port L: %f port R: %f",sensorL,sensorR)
+		dms = getSensorValue(DMS)
+		if dms > 1450:
+			stop()
+			return
 		if sensorL>thresh:
 			setMotorWheelSpeed(6, 800+min(223, correct*sensorL))
 			setMotorWheelSpeed(5, 1824)
@@ -194,7 +200,7 @@ def forwardOne():
 			forward(800)
 		r.sleep()
 	stop()
-'''
+
 def turnAngle(angle):
 #angle is degrees/90
 	while angle < -2:
@@ -372,7 +378,7 @@ def mapBuild():
 	coolMap = EECSMap()
 	coolMap.clearObstacleMap()
 	setBoundWalls(coolMap)
-	IR_threshold = 50
+	IR_threshold = 32
 	DMS_threshold = 1000
 
 	known = numpy.zeros((8,8))
@@ -457,15 +463,15 @@ if __name__ == "__main__":
 	print(getPath(newMap, goal[0], goal[1], goalDir))
 	'''
 	
-	#turnAngle(-2)
-	#turnAngle(-2)
+	#turnAngle(2)
+	#turnAngle(2)
 	
 	mapBuild()
-	
+	#forwardOne()
 	
 	while not rospy.is_shutdown():
 		# call function to get sensor value
-		#rospy.loginfo("Sensor value at port L: %f port R: %f",sensorL,sensorR)
+		rospy.loginfo("Sensor value at port L: %f port R: %f",getSensorValue(LSENSOR),getSensorValue(RSENSOR))
 		r.sleep()
 
 
