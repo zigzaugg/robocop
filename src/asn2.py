@@ -378,7 +378,7 @@ def mapBuild():
 	coolMap = EECSMap()
 	coolMap.clearObstacleMap()
 	setBoundWalls(coolMap)
-	IR_threshold = 32
+	IR_threshold = 25
 	DMS_threshold = 1000
 
 	known = numpy.zeros((8,8))
