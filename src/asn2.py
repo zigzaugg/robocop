@@ -8,6 +8,8 @@ import numpy
 from fw_wrapper.srv import *
 from eecs301_grp_L.srv import *
 from map import *
+import threading
+import time
 
 #LEFT = 5
 #RIGHT = 6
@@ -130,19 +132,6 @@ def shutdown(sig, stackframe):
 	stop()
 	sys.exit(0)
 
-def forward(speed):
-	LWheelCorrection = 0
-	RWheelCorrection = 0
-	
-	if getSensorValue(1) > 600:
-		RWheelCorrection = 50
-		print("correct r")
-	if getSensorValue(2) > 600:
-		LWheelCorrection = 50
-		print("correct l")
-	
-	setMotorWheelSpeed(5, 1024+speed+RWheelCorrection )
-	setMotorWheelSpeed(6, speed+LWheelCorrection)
 
 def stop():
 	setMotorWheelSpeed(5,0)
@@ -155,8 +144,22 @@ def turn(speed, direction):
 	elif direction == 1:
 		setMotorWheelSpeed(6, speed)
 		setMotorWheelSpeed(5, speed)
-		
-		
+
+#motion combination 1
+def forward(speed):
+	LWheelCorrection = 0
+	RWheelCorrection = 0
+
+	if getSensorValue(RSENSOR) > 600:
+		RWheelCorrection = 50
+		print("correct r")
+	if getSensorValue(LSENSOR) > 600:
+		LWheelCorrection = 50
+		print("correct l")
+
+	
+	setMotorWheelSpeed(5, 1024+speed+RWheelCorrection )
+	setMotorWheelSpeed(6, speed+LWheelCorrection)
 
 def forwardOne():
 #don't call outside of "moveOne"
@@ -164,7 +167,34 @@ def forwardOne():
 	forward(800)
 	rospy.sleep(2)
 	stop()
-	
+		
+'''
+motion combination2
+def forward(speed):
+	setMotorWheelSpeed(5, 1024+speed )
+	setMotorWheelSpeed(6, speed)
+
+def forwardOne():
+#don't call outside of "moveOne"
+	rospy.loginfo("Taking One Step")
+	r = rospy.Rate(4)
+	thresh = 20
+	correct = .2
+	while not rospy.is_shutdown():
+		sensorL = getSensorValue(LSENSOR)
+		sensorR = getSensorValue(RSENSOR)
+		rospy.loginfo("Sensor value at port L: %f port R: %f",sensorL,sensorR)
+		if sensorL>thresh:
+			setMotorWheelSpeed(6, 800+min(223, correct*sensorL))
+			setMotorWheelSpeed(5, 1824)
+		elif sensorR>thresh:
+			setMotorWheelSpeed(5, 1824+min(223, correct*sensorR))
+			setMotorWheelSpeed(6, 800)
+		else:
+			forward(800)
+		r.sleep()
+	stop()
+'''
 def turnAngle(angle):
 #angle is degrees/90
 	while angle < -2:
@@ -228,9 +258,9 @@ def moveDir(direction, map):
 def goToWall():
 	rospy.loginfo("Walking Up to wall")
 	forward(800)
-	sense = getSensorValue(3)
+	sense = getSensorValue(DMS)
 	while sense < 1300:
-		sense = getSensorValue(3)
+		sense = getSensorValue(DMS)
 		print(sense)
 	print("stopping")
 	stop()
@@ -272,17 +302,13 @@ def fillCostGrid(map, x, y):
 	for i in xrange(8):
 		for j in xrange(8):
 			map.setCost(i, j, 1000)
-#	map.printCostMap()
-#	map.clearCostMap()
 	map.setCost(x, y, 0)
 	setAllCosts(map, x, y, 0)
-#	map.printCostMap()	
-	
 #######Cost
 
 def walkToGoal(map, x, y, d):
 	fillCostGrid(map, x, y)
-	map.printCostMap()
+	
 	map.printObstacleMap()
 	print known
 	while True:
@@ -355,11 +381,11 @@ def mapBuild():
 		print Loc
 		known[Loc[0]][Loc[1]] = 1
 		print known
-		if getSensorValue(2) > IR_threshold:
+		if getSensorValue(LSENSOR) > IR_threshold:
 			coolMap.setObstacle(Loc[0], Loc[1], 1, wrap(Dir-1))
-		if getSensorValue(1) > IR_threshold:
+		if getSensorValue(RSENSOR) > IR_threshold:
 			coolMap.setObstacle(Loc[0], Loc[1], 1, wrap(Dir+1))
-		if getSensorValue(3) > DMS_threshold:
+		if getSensorValue(DMS) > DMS_threshold:
 			coolMap.setObstacle(Loc[0], Loc[1], 1, Dir)
 		
 		if surrounded(known, Loc[0]-1, Loc[1]):
@@ -394,11 +420,6 @@ def mapBuild():
 		known[closestX][closestY] = 0
 
 	coolMap.printObstaclemap()
-		
-		
-
-
-
 
 def findAllWalls(map):
 	pass
@@ -409,36 +430,42 @@ if __name__ == "__main__":
 	rospy.init_node('example_node', anonymous = True)
 	rospy.loginfo("Starting Group L Control Node...")
 	signal.signal(signal.SIGINT, shutdown)
-	r = rospy.Rate(4) # 10hz
+	r = rospy.Rate(2) # 10hz
 
 	global Loc 
 	global Dir
 	global turnTime
+	global LSENSOR
+	global RSENSOR
+	global DMS
+	LSENSOR = 1
+	RSENSOR = 4
+	DMS = 3
 	
 	Loc = [int(sys.argv[1]), int(sys.argv[2])]
 	Dir = int(sys.argv[3])
-	'''goal = [int(sys.argv[4]), int(sys.argv[5])]
-	goalDir = int(sys.argv[6])'''
+	'''
+	goal = [int(sys.argv[4]), int(sys.argv[5])]
+	goalDir = int(sys.argv[6])
+	'''
 	turnTime = float(sys.argv[4])
 	
 	
 	newMap = EECSMap()
-	newMap.printObstacleMap()
 	'''
 	print("Path:")
 	print(getPath(newMap, goal[0], goal[1], goalDir))
 	'''
 	
-	#turnAngle(2)
-	#turnAngle(2)
+	#turnAngle(-2)
+	#turnAngle(-2)
 	
 	mapBuild()
 	
+	
 	while not rospy.is_shutdown():
 		# call function to get sensor value
-		# rospy.loginfo(getSensorValue(1))
+		#rospy.loginfo("Sensor value at port L: %f port R: %f",sensorL,sensorR)
 		r.sleep()
-		#rospy.loginfo("Sensor value at port %d: %f", 3, getSensorValue(3))
-		#rospy.loginfo("Sensor value at port %d: %f", 2, getSensorValue(2))
-		#rospy.loginfo("Sensor value at port %d: %f", 3, getSensorValue(3))
+
 
