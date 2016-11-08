@@ -397,6 +397,8 @@ def mapBuild():
 			coolMap.setObstacle(Loc[0], Loc[1], 1, Dir)
 		
 		coolMap.printObstacleMap()
+		pickle.dump(coolMap, open("map.p", "wb"))
+		pickle.dump(known, open("known.p", "wb"))
 		
 		if surrounded(known, Loc[0]-1, Loc[1]):
 			known[Loc[0]-1][Loc[1]] = 1
@@ -429,7 +431,8 @@ def mapBuild():
 		walkToGoal(coolMap, closestX, closestY, 0)
 		known[closestX][closestY] = 0
 
-	#pickle.dump(coolMap, maps)
+	pickle.dump(coolMap, open("map.p", "wb"))
+	pickle.dump(known, open("known.p", "wb"))
 	coolMap.printObstaclemap()
 
 
@@ -453,23 +456,35 @@ if __name__ == "__main__":
 	Loc = [int(sys.argv[1]), int(sys.argv[2])]
 	Dir = int(sys.argv[3])
 	'''
-	goal = [int(sys.argv[4]), int(sys.argv[5])]
-	goalDir = int(sys.argv[6])
+	goal = [int(sys.argv[6]), int(sys.argv[6])]
+	goalDir = int(sys.argv[8])
 	'''
 	turnTime = float(sys.argv[4])
+	command = float(sys.argv[5])
 	
-	
-	newMap = EECSMap()
+	if command == 0:
+		mapBuild()
+	elif command == 1:
+		oldMap = pickle.load(open("map.p", "rb"))
+		global known
+		known = pickle.load(open("known.p", "rb"))
+		goal = [int(sys.argv[6]), int(sys.argv[7])]
+		goalDir = int(sys.argv[8])
+		walkToGoal(oldMap, goal[0], goal[1], goalDir)
+	elif command == 2:
+		#turn test
+		turnAngle(2)
+		turnAngle(2)
+	elif command == 3:
+		#walking Test
+		forwardOne()
+	else:
+		rospy.log("wut...")
 	'''
+	newMap = EECSMap()
 	print("Path:")
 	print(getPath(newMap, goal[0], goal[1], goalDir))
 	'''
-	
-	#turnAngle(2)
-	#turnAngle(2)
-	#forwardOne()
-	
-	mapBuild()
 	
 	
 	while not rospy.is_shutdown():
