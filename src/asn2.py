@@ -183,7 +183,7 @@ def forwardOne():
 	#Lthresh = 150
 	correct = .2
 	n=0
-	while n<11:
+	while n<10:
 		n +=1
 		sensorL = getSensorValue(LSENSOR)
 		sensorR = getSensorValue(RSENSOR)
@@ -192,8 +192,9 @@ def forwardOne():
 			stop()
 			return
 		if sensorL>thresh:
-			setMotorWheelSpeed(6, 800+min(223, correct*sensorL))
 			setMotorWheelSpeed(5, 1824)
+			setMotorWheelSpeed(6, 800+min(223, correct*sensorL))
+			
 		elif sensorR>thresh:
 			setMotorWheelSpeed(5, 1824+min(223, correct*sensorR))
 			setMotorWheelSpeed(6, 800)
@@ -395,7 +396,7 @@ def mapBuild():
 		if getSensorValue(DMS) > DMS_threshold:
 			coolMap.setObstacle(Loc[0], Loc[1], 1, Dir)
 		
-		coolmap.printObstacleMap()
+		coolMap.printObstacleMap()
 		
 		if surrounded(known, Loc[0]-1, Loc[1]):
 			known[Loc[0]-1][Loc[1]] = 1
