@@ -5,6 +5,7 @@ import rospy
 import signal
 import sys
 import numpy
+import pickle
 from fw_wrapper.srv import *
 from eecs301_grp_L.srv import *
 from map import *
@@ -394,6 +395,8 @@ def mapBuild():
 		if getSensorValue(DMS) > DMS_threshold:
 			coolMap.setObstacle(Loc[0], Loc[1], 1, Dir)
 		
+		coolmap.printObstacleMap()
+		
 		if surrounded(known, Loc[0]-1, Loc[1]):
 			known[Loc[0]-1][Loc[1]] = 1
 		
@@ -425,11 +428,9 @@ def mapBuild():
 		walkToGoal(coolMap, closestX, closestY, 0)
 		known[closestX][closestY] = 0
 
+	#pickle.dump(coolMap, maps)
 	coolMap.printObstaclemap()
 
-def findAllWalls(map):
-	pass
-	
 
 # Main function
 if __name__ == "__main__":
@@ -465,9 +466,10 @@ if __name__ == "__main__":
 	
 	#turnAngle(2)
 	#turnAngle(2)
+	#forwardOne()
 	
 	mapBuild()
-	#forwardOne()
+	
 	
 	while not rospy.is_shutdown():
 		# call function to get sensor value
