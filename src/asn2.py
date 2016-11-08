@@ -180,13 +180,12 @@ def forwardOne():
 	rospy.loginfo("Taking One Step")
 	r = rospy.Rate(5)
 	thresh = 300
-	#Lthresh = 150
-	correctP = .2
-	correctD = .8
+	correctP = .3
+	correctD = 1
 	n=0
 	oldL = getSensorValue(LSENSOR)
 	oldR = getSensorValue(RSENSOR)
-	while n<10:
+	while n<9:
 		n += 1
 		sensorL = getSensorValue(LSENSOR)
 		sensorR = getSensorValue(RSENSOR)
@@ -195,11 +194,15 @@ def forwardOne():
 			stop()
 			return
 		if sensorL>thresh:
+			print('sentL')
 			setMotorWheelSpeed(5, 1824)
 			setMotorWheelSpeed(6, 800+min(223, correctP*sensorL+correctD*(sensorL-oldL)))
+			print('responseL')
 		elif sensorR>thresh:
+			print('sentR')
 			setMotorWheelSpeed(5, 1824+min(223, correctP*sensorR+correctD*(sensorR-oldR)))
 			setMotorWheelSpeed(6, 800)
+			print('responseR')
 		else:
 			forward(800)
 		oldL = sensorL
@@ -231,7 +234,7 @@ def turnAngle(angle):
 		rospy.sleep(duration)
 		stop()
 	elif angle == 1:
-		rospy.loginfo("Turn Right Once")
+		rospy.loginfo("Turn Right")
 		turn(400, 1)
 		rospy.sleep(duration)
 		stop()
@@ -258,11 +261,12 @@ def moveDir(direction, map):
 		Loc[0] += 1
 	elif Dir == 4:
 		Loc[1] -= 1
-		
+	'''	
 	if map.getNeighborObstacle(Loc[0], Loc[1], Dir):
 		goToWall()
 	else:
-		forwardOne()
+	'''
+	forwardOne()
 	rospy.loginfo("Loc: %d \t %d", Loc[0], Loc[1])
 	rospy.loginfo("Dir: %d", Dir)
 
@@ -437,7 +441,7 @@ def mapBuild():
 
 	pickle.dump(coolMap, open("map.p", "wb"))
 	pickle.dump(known, open("known.p", "wb"))
-	coolMap.printObstaclemap()
+	coolMap.printObstacleMap()
 
 
 # Main function
@@ -481,7 +485,8 @@ if __name__ == "__main__":
 		turnAngle(2)
 	elif command == 3:
 		#walking Test
-		forwardOne()
+		while True:
+			forwardOne()
 	else:
 		rospy.log("wut...")
 	
