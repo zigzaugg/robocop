@@ -127,7 +127,6 @@ def getIsMotorMovingCommand(motor_id):
 
 
 ### OUR CODE ###
-
 def shutdown(sig, stackframe):
 	print("\nShutdown")
 	stop()
@@ -217,7 +216,7 @@ def turnAngle(angle):
 	while angle > 2:
 		angle -= 4
 		
-	duration = turnTime #Times we've used: 1.134, 1.180, 1.175, 1.135
+	duration = turnTime #recent: 1.13
 	if angle == 0:
 		return
 	elif angle == -2:
@@ -261,11 +260,6 @@ def moveDir(direction, map):
 		Loc[0] += 1
 	elif Dir == 4:
 		Loc[1] -= 1
-	'''	
-	if map.getNeighborObstacle(Loc[0], Loc[1], Dir):
-		goToWall()
-	else:
-	'''
 	forwardOne()
 	rospy.loginfo("Loc: %d \t %d", Loc[0], Loc[1])
 	rospy.loginfo("Dir: %d", Dir)
@@ -312,8 +306,6 @@ def setAllCosts(map, x, y, cost):
 				map.setNeighborCost(x, y, dir, cost + 1)
 				setAllCosts(map, getNeighborX(x, y, dir), getNeighborY(x, y, dir), cost + 1)
 
-
-
 def fillCostGrid(map, x, y):
 	for i in xrange(8):
 		for j in xrange(8):
@@ -351,9 +343,6 @@ def getPathSegment(map, sx, sy, gx, gy):
 			tail.insert(0, (sx,sy))
 			return tail
 	return [(sx, sy)]
-
-#Finds if a block should never be returned to
-	
 	
 def wrap(i):
 	while i < 1:
@@ -373,7 +362,6 @@ def surrounded(arr, x, y):
 	toReturn = toReturn and (x>=7 or arr[x+1][y])
 	toReturn = toReturn and (y>=7 or arr[x][y+1])
 	return toReturn
-#	return (x<=0 or arr[x-1][y]) and (y<=0 or arr[x][y-1]) and (x>=7 or arr[x+1][y]) and (y>=7 or arr[x][y+1])
 
 def setBoundWalls(map):
 	for i in range(8):
@@ -461,14 +449,10 @@ if __name__ == "__main__":
 	RSENSOR = 4
 	DMS = 3
 	
-	Loc = [int(sys.argv[1]), int(sys.argv[2])]
-	Dir = int(sys.argv[3])
-	'''
-	goal = [int(sys.argv[6]), int(sys.argv[6])]
-	goalDir = int(sys.argv[8])
-	'''
-	turnTime = float(sys.argv[4])
-	command = float(sys.argv[5])
+	command = float(sys.argv[1])
+	turnTime = float(sys.argv[2])
+	Loc = [int(sys.argv[3]), int(sys.argv[4])]
+	Dir = int(sys.argv[5])
 	
 	if command == 0:
 		mapBuild()
