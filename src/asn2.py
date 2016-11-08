@@ -181,10 +181,13 @@ def forwardOne():
 	r = rospy.Rate(5)
 	thresh = 300
 	#Lthresh = 150
-	correct = .2
+	correctP = .2
+	correctD = .8
 	n=0
+	oldL = getSensorValue(LSENSOR)
+	oldR = getSensorValue(RSENSOR)
 	while n<10:
-		n +=1
+		n += 1
 		sensorL = getSensorValue(LSENSOR)
 		sensorR = getSensorValue(RSENSOR)
 		dms = getSensorValue(DMS)
@@ -193,13 +196,14 @@ def forwardOne():
 			return
 		if sensorL>thresh:
 			setMotorWheelSpeed(5, 1824)
-			setMotorWheelSpeed(6, 800+min(223, correct*sensorL))
-			
+			setMotorWheelSpeed(6, 800+min(223, correctP*sensorL+correctD*(sensorL-oldL)))
 		elif sensorR>thresh:
-			setMotorWheelSpeed(5, 1824+min(223, correct*sensorR))
+			setMotorWheelSpeed(5, 1824+min(223, correctP*sensorR+correctD*(sensorR-oldR)))
 			setMotorWheelSpeed(6, 800)
 		else:
 			forward(800)
+		oldL = sensorL
+		oldR = sensorR
 		r.sleep()
 	stop()
 
@@ -480,11 +484,6 @@ if __name__ == "__main__":
 		forwardOne()
 	else:
 		rospy.log("wut...")
-	'''
-	newMap = EECSMap()
-	print("Path:")
-	print(getPath(newMap, goal[0], goal[1], goalDir))
-	'''
 	
 	
 	while not rospy.is_shutdown():
