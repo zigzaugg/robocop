@@ -184,7 +184,7 @@ def forwardOne():
 	n=0
 	oldL = getSensorValue(LSENSOR)
 	oldR = getSensorValue(RSENSOR)
-	while n<9:
+	while n<10:
 		n += 1
 		sensorL = getSensorValue(LSENSOR)
 		sensorR = getSensorValue(RSENSOR)
@@ -457,9 +457,11 @@ if __name__ == "__main__":
 	if command == 0:
 		mapBuild()
 	elif command == 1:
-		oldMap = pickle.load(open("map.p", "rb"))
+		#oldMap = pickle.load(open("map.p", "rb"))
+		oldMap = EECSMap()
 		global known
-		known = pickle.load(open("known.p", "rb"))
+		#known = pickle.load(open("known.p", "rb"))
+		known = numpy.ones((8,8))
 		goal = [int(sys.argv[6]), int(sys.argv[7])]
 		goalDir = int(sys.argv[8])
 		walkToGoal(oldMap, goal[0], goal[1], goalDir)
