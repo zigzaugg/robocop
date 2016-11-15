@@ -195,11 +195,16 @@ if __name__ == "__main__":
 	turnTime = float(sys.argv[1])
 	speed = int(sys.argv[2])
 	
-	#pickle.load
+	
 	
 	turnAngle(1)
 	
 	angle = int(raw_input("Enter Angels: "))
+	
+	#pickle.load
+	data.append([turnTime, speed, angle])
+	#pickle.dump
+	
 	while not rospy.is_shutdown():
 		# call function to get sensor value
 		#rospy.loginfo("Sensor value at port L: %f port R: %f",getSensorValue(LSENSOR),getSensorValue(RSENSOR))
