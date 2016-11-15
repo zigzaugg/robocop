@@ -57,7 +57,7 @@ class EECSMap():
         self.horizontalWalls[3][5] = 0
         self.horizontalWalls[3][6] = 0
         self.horizontalWalls[3][7] = 0
-        self.horizontalWalls[4][0] = 0
+        self.horizontalWalls[4][0] = 1
         self.horizontalWalls[4][1] = 1
         self.horizontalWalls[4][2] = 0
         self.horizontalWalls[4][3] = 0
@@ -102,13 +102,13 @@ class EECSMap():
         self.verticalWalls[0][1] = 0
         self.verticalWalls[0][2] = 0
         self.verticalWalls[0][3] = 0
-        self.verticalWalls[0][4] = 1
+        self.verticalWalls[0][4] = 0
         self.verticalWalls[0][5] = 0
         self.verticalWalls[0][6] = 0
         self.verticalWalls[0][7] = 0
         self.verticalWalls[0][8] = 1
         self.verticalWalls[1][0] = 1
-        self.verticalWalls[1][1] = 0
+        self.verticalWalls[1][1] = 1
         self.verticalWalls[1][2] = 0
         self.verticalWalls[1][3] = 0
         self.verticalWalls[1][4] = 0
@@ -117,7 +117,7 @@ class EECSMap():
         self.verticalWalls[1][7] = 1
         self.verticalWalls[1][8] = 1
         self.verticalWalls[2][0] = 1
-        self.verticalWalls[2][1] = 1
+        self.verticalWalls[2][1] = 0
         self.verticalWalls[2][2] = 0
         self.verticalWalls[2][3] = 0
         self.verticalWalls[2][4] = 0
@@ -140,7 +140,7 @@ class EECSMap():
         self.verticalWalls[4][3] = 1
         self.verticalWalls[4][4] = 1
         self.verticalWalls[4][5] = 1
-        self.verticalWalls[4][6] = 0
+        self.verticalWalls[4][6] = 1
         self.verticalWalls[4][7] = 0
         self.verticalWalls[4][8] = 1
         self.verticalWalls[5][0] = 1
@@ -157,9 +157,9 @@ class EECSMap():
         self.verticalWalls[6][2] = 0
         self.verticalWalls[6][3] = 1
         self.verticalWalls[6][4] = 0
-        self.verticalWalls[6][5] = 1
+        self.verticalWalls[6][5] = 0
         self.verticalWalls[6][6] = 0
-        self.verticalWalls[6][7] = 0
+        self.verticalWalls[6][7] = 1
         self.verticalWalls[6][8] = 1
         self.verticalWalls[7][0] = 1
         self.verticalWalls[7][1] = 0
