@@ -192,22 +192,29 @@ if __name__ == "__main__":
 	global turnTime
 	global speed
 	
-	turnTime = float(sys.argv[1])
-	speed = int(sys.argv[2])
 	
+	command = int(sys.argv[1])
 	
-	
-	turnAngle(1)
-	
-	angle = int(raw_input("Enter Angels: "))
-	
-	#pickle.load
-	data.append([turnTime, speed, angle])
-	#pickle.dump
-	
-	while not rospy.is_shutdown():
-		# call function to get sensor value
-		#rospy.loginfo("Sensor value at port L: %f port R: %f",getSensorValue(LSENSOR),getSensorValue(RSENSOR))
-		r.sleep()
-
+	if command == 0:
+		#Gather Data
+		turnTime = float(sys.argv[2])
+		speed = int(sys.argv[3])
+		turnAngle(1)
+		angle = int(raw_input("Enter Angels: "))
+		data=pickle.load(open("machine.p", "rb"))
+		data.append([turnTime, speed, angle])
+		pickle.dump(data, open("machine.p", "wb"))
+		
+	elif command == 1:
+		#Edit Data
+		data=pickle.load(open("machine.p", "rb"))
+		print data
+		#edits
+	elif command == 2:
+		#Clear Data
+		
+		sure = raw_input("Nuclear Launch Codes: ")
+		if sure == "yes":
+			data = []
+			pickle.dump(data, open("machine.p", "wb"))
 
