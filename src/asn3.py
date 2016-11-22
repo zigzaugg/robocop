@@ -10,7 +10,7 @@ import pickle
 from fw_wrapper.srv import *
 from eecs301_grp_L.srv import *
 import math
-from sklearn import linear_model
+from numpy.linalg import inv
 
 #LEFT = 5
 #RIGHT = 6
@@ -194,9 +194,9 @@ def distance(x1, y1, x2, y2):
 
 
 def N_nearest(N, s, ang, data):
-	return sorted(data, key=lambda datum: distance(x, y, datum[1], datum[2]))[:N]
+	return sorted(data, key=lambda datum: distance(s, ang, datum[1], datum[2]))[:N]
 
-
+'''
 def regression(s, ang, data):
 	tot_weight = 0
 	accumulator = 0
@@ -209,24 +209,53 @@ def regression(s, ang, data):
 	#return accumulator / tot_weight
 	nn = N_nearest(2, s, ang, data)
 	return (nn[0][0] + nn[1][0]) / 2
-	
+'''
 def plotReg(s, data):
 	angs = np.arange(0, 360, 1)
-	plt.plot(angs, [regression(s, ang, data) for ang in angs], 'k')
+	plt.plot(angs, [bruteForce(s, ang, data) for ang in angs], 'k')
 	plt.show()
 	
-def linReg(data):
-	x = []
+
+def flipData(data):
+	x1 = []
+	x2 = []
 	y = []
-	z = []
 	for [tt, s, a] in data:
-		z.append(tt)
-		x.append(s)
-		y.append(a)
-	reg = linear_model.LinearRegression()
-	reg.fit([x, y], z)
-
-
+		x1.append(s)
+		x2.append(a)
+		y.append(tt)
+	newData = [x1, x2, y]
+	return newData
+	
+def bruteForce(s,ang,data):
+	'''
+	#x1 is speed, x2 is angle
+	nearest = N_nearest(5, s, ang, data)
+	[x1, x2, y] = flipData(nearest)
+	errorMin = 10000000
+	ranges = [[.004, 0], [.01, .1]]
+	for b1 in np.arange(ranges[0][0], ranges[1][0]+.001, .0001):
+		for c in np.arange(ranges[0][1], ranges[1][1]+.01, .001):
+			error = 0
+			for ii in range(len(x1)):
+				error += (y[ii]-(b1*x2[ii]+c))**2
+			if error < errorMin:
+				errorMin = error
+				const = [b1, c]
+	print const
+	'''
+	data = N_nearest(5, s, ang, data)
+	data = np.array(data)
+	X1 = data[:,1]
+	X2 = data[:,2]
+	X = np.concatenate((X1,X2), axis=1)
+	Y = data[0]
+	
+	B=np.dot(inv(np.dot(np.transpose(X),X)),np.dot(np.transpose(X),Y))
+	print B
+	y= B[0]*s + B[1]*ang;
+	return y
+	
 # Main function
 if __name__ == "__main__":
 	rospy.init_node('example_node', anonymous = True)
@@ -266,6 +295,9 @@ if __name__ == "__main__":
 	elif command == 3:
 		data=pickle.load(open("machine.p", "rb"))
 		plotReg(1000, data)
+	elif command ==4:
+		data=pickle.load(open("machine.p", "rb"))
+		#nothing
 	elif command == 10:
 		#Clear Data
 		
