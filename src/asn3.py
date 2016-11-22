@@ -190,6 +190,11 @@ def turnAngle(angle):
 def distance(x1, y1, x2, y2):
 	return max(np.sqrt(np.power((x1-x2), 2) + np.power((y1-y2), 2)), 0.001)
 
+
+def N_nearest(N, x, y, data):
+	return sorted(data, key=lambda datum: distance(x, y, datum[1], datum[2]))[:N]
+
+
 def regression(s, ang, data):
 	tot_weight = 0
 	accumulator = 0
@@ -199,13 +204,15 @@ def regression(s, ang, data):
 		tot_weight += point_weight
 		accumulator += point_weight * point_tt
 		
-	return accumulator / tot_weight
+	#return accumulator / tot_weight
+	nn = N_nearest(2, s, ang, data)
+	return (nn[0][0] + nn[1][0]) / 2
 	
 def plotReg(s, data):
 	angs = np.arange(0, 360, 1)
 	plt.plot(angs, [regression(s, ang, data) for ang in angs], 'k')
 	plt.show()
-	
+
 # Main function
 if __name__ == "__main__":
 	rospy.init_node('example_node', anonymous = True)
