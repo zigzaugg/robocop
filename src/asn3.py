@@ -4,13 +4,12 @@ import roslib
 import rospy
 import signal
 import sys
-import numpy
+import numpy as np
+import matplotlib.pyplot as plt
 import pickle
 from fw_wrapper.srv import *
 from eecs301_grp_L.srv import *
-from map import *
-import threading
-import time
+import math
 
 #LEFT = 5
 #RIGHT = 6
@@ -144,6 +143,12 @@ def turn(speed, direction):
 	elif direction == 1:
 		setMotorWheelSpeed(6, speed)
 		setMotorWheelSpeed(5, speed)
+		
+def turnSpecific(duration, speed):
+	turn(speed, 1)
+	rospy.sleep(duration)
+	stop()
+		
 
 def turnAngle(angle):
 #angle is degrees/90
@@ -181,12 +186,31 @@ def turnAngle(angle):
 		turn(speed, 1)
 		rospy.sleep(duration)
 		stop()
+		
+def distance(x1, y1, x2, y2):
+	return max(np.sqrt(np.power((x1-x2), 2) + np.power((y1-y2), 2)), 0.001)
 
+def regression(s, ang, data):
+	tot_weight = 0
+	accumulator = 0
+	
+	for [point_tt, point_s, point_angle] in data:
+		point_weight = 1/np.power(distance(s, ang, point_s, point_angle), 2)
+		tot_weight += point_weight
+		accumulator += point_weight * point_tt
+		
+	return accumulator / tot_weight
+	
+def plotReg(s, data):
+	angs = np.arange(0, 360, 1)
+	plt.plot(angs, [regression(s, ang, data) for ang in angs], 'k')
+	plt.show()
+	
 # Main function
 if __name__ == "__main__":
 	rospy.init_node('example_node', anonymous = True)
 	rospy.loginfo("Starting Group L Control Node...")
-	signal.signal(signal.SIGINT, shutdown)
+	#signal.signal(signal.SIGINT, shutdown)
 	r = rospy.Rate(2) # 10hz
 
 	global turnTime
@@ -211,6 +235,17 @@ if __name__ == "__main__":
 		print data
 		#edits
 	elif command == 2:
+		data=pickle.load(open("machine.p", "rb"))
+		
+		reg_s = int(sys.argv[2])
+		reg_ang = int(sys.argv[3])
+		
+		print regression(reg_s, reg_ang, data)
+		
+	elif command == 3:
+		data=pickle.load(open("machine.p", "rb"))
+		plotReg(1000, data)
+	elif command == 10:
 		#Clear Data
 		
 		sure = raw_input("Nuclear Launch Codes: ")
