@@ -217,7 +217,35 @@ def linReg(data):
 		y.append(a)
 	reg = linear_model.LinearRegression()
 	reg.fit([x, y], z)
+	
+def bruteForce(data):
+	const = [0, 0, 0]
+	x1 = []
+	x2 = []
+	y = []
+	for [tt, s, a] in data:
+		y.append(tt)
+		x1.append(s)
+		x2.append(a)
+		newData = [x1, x2, y]
 
+	errorMin = 10000000
+	ranges = [[0 0 0], [100 100 100]]
+	for b1 in range():
+		from b2 in range():
+			from c in range():
+				error = 0
+				for ii = len(x1):
+					error += (y[ii]-(b1*x1[ii]+b2*x2[ii]+c))
+				if error < errorMin:
+					errorMin = error
+					const = [b1, b2, c]
+	for a in ranges:
+		for ii in range(3):
+			if const[[ii]]==a[[ii]]:
+				print("we're at a boundry")
+
+	return const
 # Main function
 if __name__ == "__main__":
 	rospy.init_node('example_node', anonymous = True)
