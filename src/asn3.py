@@ -10,6 +10,7 @@ import pickle
 from fw_wrapper.srv import *
 from eecs301_grp_L.srv import *
 import math
+from sklearn import linear_model
 
 #LEFT = 5
 #RIGHT = 6
@@ -188,10 +189,11 @@ def turnAngle(angle):
 		stop()
 		
 def distance(x1, y1, x2, y2):
-	return max(np.sqrt(np.power((x1-x2), 2) + np.power((y1-y2), 2)), 0.001)
+	weight = 1
+	return max(np.sqrt(np.power((x1-x2), 2) + np.power(weight*(y1-y2), 2)), 0.001)
 
 
-def N_nearest(N, x, y, data):
+def N_nearest(N, s, ang, data):
 	return sorted(data, key=lambda datum: distance(x, y, datum[1], datum[2]))[:N]
 
 
@@ -212,6 +214,18 @@ def plotReg(s, data):
 	angs = np.arange(0, 360, 1)
 	plt.plot(angs, [regression(s, ang, data) for ang in angs], 'k')
 	plt.show()
+	
+def linReg(data):
+	x = []
+	y = []
+	z = []
+	for [tt, s, a] in data:
+		z.append(tt)
+		x.append(s)
+		y.append(a)
+	reg = linear_model.LinearRegression()
+	reg.fit([x, y], z)
+
 
 # Main function
 if __name__ == "__main__":
