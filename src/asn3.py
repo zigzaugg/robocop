@@ -10,6 +10,7 @@ import pickle
 from fw_wrapper.srv import *
 from eecs301_grp_L.srv import *
 import math
+from sklearn import linear_model
 
 #LEFT = 5
 #RIGHT = 6
@@ -206,6 +207,17 @@ def plotReg(s, data):
 	plt.plot(angs, [regression(s, ang, data) for ang in angs], 'k')
 	plt.show()
 	
+def linReg(data):
+	x = []
+	y = []
+	z = []
+	for [tt, s, a] in data:
+		z.append(tt)
+		x.append(s)
+		y.append(a)
+	reg = linear_model.LinearRegression()
+	reg.fit([x, y], z)
+
 # Main function
 if __name__ == "__main__":
 	rospy.init_node('example_node', anonymous = True)
