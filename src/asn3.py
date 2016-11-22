@@ -228,30 +228,13 @@ def flipData(data):
 	return newData
 	
 def bruteForce(s,ang,data):
-	'''
-	#x1 is speed, x2 is angle
-	nearest = N_nearest(5, s, ang, data)
-	[x1, x2, y] = flipData(nearest)
-	errorMin = 10000000
-	ranges = [[.004, 0], [.01, .1]]
-	for b1 in np.arange(ranges[0][0], ranges[1][0]+.001, .0001):
-		for c in np.arange(ranges[0][1], ranges[1][1]+.01, .001):
-			error = 0
-			for ii in range(len(x1)):
-				error += (y[ii]-(b1*x2[ii]+c))**2
-			if error < errorMin:
-				errorMin = error
-				const = [b1, c]
-	print const
-	'''
 	data = N_nearest(5, s, ang, data)
 	data = np.array(data)
 	X1 = data[:,1]
 	X2 = data[:,2]
-	X = np.concatenate((X1,X2), axis=1)
-	Y = data[0]
-	
-	B=np.dot(inv(np.dot(np.transpose(X),X)),np.dot(np.transpose(X),Y))
+	X = np.transpose([X1, X2])
+	Y = data[:,0]
+	B = np.dot(inv(np.dot(np.transpose(X),X)), np.dot(np.transpose(X),Y))
 	print B
 	y= B[0]*s + B[1]*ang;
 	return y
