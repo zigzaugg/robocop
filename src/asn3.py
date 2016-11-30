@@ -11,6 +11,7 @@ from fw_wrapper.srv import *
 from eecs301_grp_L.srv import *
 import math
 from numpy.linalg import inv
+from mpl_toolkits.mplot3d import Axes3D
 
 #LEFT = 5
 #RIGHT = 6
@@ -194,51 +195,91 @@ def distance(x1, y1, x2, y2):
 
 
 def N_nearest(N, s, ang, data):
-	return sorted(data, key=lambda datum: distance(s, ang, datum[1], datum[2]))[:N]
-
-'''
-def regression(s, ang, data):
-	tot_weight = 0
-	accumulator = 0
+	return sorted(data, key=lambda datum: distance(s/100, ang/12, datum[1]/100, datum[2]/12))[:N]
 	
-	for [point_tt, point_s, point_angle] in data:
-		point_weight = 1/np.power(distance(s, ang, point_s, point_angle), 2)
-		tot_weight += point_weight
-		accumulator += point_weight * point_tt
-		
-	#return accumulator / tot_weight
-	nn = N_nearest(2, s, ang, data)
-	return (nn[0][0] + nn[1][0]) / 2
-'''
+def N_nearestAng(N, tt, s, data):
+	return sorted(data, key=lambda datum: distance(tt/.1, s/100, datum[0]/.1, datum[1]/100))[:N]
+	
 def plotReg(s, data):
-	angs = np.arange(0, 360, 1)
-	plt.plot(angs, [bruteForce(s, ang, data) for ang in angs], 'k')
+	angs = np.arange(0, 200, 1)
+	plt.plot(angs, [localRegressionTT(s, ang, data) for ang in angs], 'k')
 	plt.show()
 	
-
-def flipData(data):
-	x1 = []
-	x2 = []
-	y = []
-	for [tt, s, a] in data:
-		x1.append(s)
-		x2.append(a)
-		y.append(tt)
-	newData = [x1, x2, y]
-	return newData
+def plotRegAng(s, data):
+	tts = np.arange(.1, 2, .01)
+	plt.plot(tts, [localRegressionAng(tt, s, data) for tt in tts], 'k')
+	plt.show()
 	
-def bruteForce(s,ang,data):
-	data = N_nearest(5, s, ang, data)
+def plotReg3D(data):
+
+	fig = plt.figure()
+	ax = fig.add_subplot(111, projection = '3d')
+	
+	speeds = np.arange(500, 1000, 5)
+	angs = np.arange(0, 250, 5)
+	
+	x, y = np.meshgrid(speeds,angs)
+	
+	z = np.zeros((len(x), len(x[0])))
+	for i in range(len(z)):
+		for j in range(len(z[0])):
+			z[i][j] = localRegressionTT(x[i][j], y[i][j], data)
+	print localRegressionTT(995, 245, data)
+	ax.plot_surface(x, y, z)
+	plt.show()
+	
+def localRegressionTT(s,ang,data):
+	data = N_nearest(25, s, ang, data)
 	data = np.array(data)
 	X1 = data[:,1]
 	X2 = data[:,2]
-	X = np.transpose([X1, X2])
+	X = np.transpose([X1, X2, np.ones(len(X1))])
+	determined = True
+	if np.linalg.det(np.dot(np.transpose(X),X))==0:
+		X = np.transpose([X1, X2])
+		print("Data set indetermined")
+		determined=False
+	print X
 	Y = data[:,0]
 	B = np.dot(inv(np.dot(np.transpose(X),X)), np.dot(np.transpose(X),Y))
-	print B
-	y= B[0]*s + B[1]*ang;
+	if not determined:
+		B=np.append(B,[0])
+	y= B[0]*s + B[1]*ang +B[2];
 	return y
 	
+def turnExactAngle(s,ang,data):
+	tt=localRegressionTT(s,ang,data)
+	rospy.loginfo("Turning for %f seconds",tt)
+	turn(s,1)
+	rospy.sleep(tt)
+	stop()
+
+def localRegressionAng(tt,s,data):
+	data = N_nearestAng(10, tt, s, data)
+	data = np.array(data)
+	X1 = data[:,0]
+	X2 = data[:,1]
+	X = np.transpose([X1, X2, np.ones(len(X1))])
+	determined = True
+	if np.linalg.det(np.dot(np.transpose(X),X))==0:
+		X = np.transpose([X1, X2])
+		print("Data set indetermined")
+		determined=False
+	print X
+	Y = data[:,2]
+	B = np.dot(inv(np.dot(np.transpose(X),X)), np.dot(np.transpose(X),Y))
+	if not determined:
+		B=np.append(B,[0])
+	y= B[0]*tt + B[1]*s+B[2];
+	return y
+	
+def turnUnknownAngle(tt,s,data):
+	ang = localRegressionAng(tt,s,data)
+	rospy.loginfo("Estimated turn angle: %i",ang)
+	turn(s,1)
+	rospy.sleep(tt)
+	stop()
+
 # Main function
 if __name__ == "__main__":
 	rospy.init_node('example_node', anonymous = True)
@@ -261,29 +302,32 @@ if __name__ == "__main__":
 		data=pickle.load(open("machine.p", "rb"))
 		data.append([turnTime, speed, angle])
 		pickle.dump(data, open("machine.p", "wb"))
-		
 	elif command == 1:
 		#Edit Data
 		data=pickle.load(open("machine.p", "rb"))
+		data[-1][2] = int(sys.argv[2])
+		pickle.dump(data, open("machine.p", "wb"))
 		print data
 		#edits
 	elif command == 2:
+		#turning at constant speed and angle
 		data=pickle.load(open("machine.p", "rb"))
-		
 		reg_s = int(sys.argv[2])
 		reg_ang = int(sys.argv[3])
-		
-		print regression(reg_s, reg_ang, data)
-		
+		turnExactAngle(reg_s,reg_ang,data)
 	elif command == 3:
+		#turning at constant speed ant turn time
 		data=pickle.load(open("machine.p", "rb"))
-		plotReg(1000, data)
-	elif command ==4:
+		reg_tt = float(sys.argv[2])
+		reg_s = int(sys.argv[3])
+		turnUnknownAngle(reg_tt,reg_s,data)
+	elif command == 4:
+		#regression plot
 		data=pickle.load(open("machine.p", "rb"))
-		#nothing
+		plotReg3D(data)
+
 	elif command == 10:
 		#Clear Data
-		
 		sure = raw_input("Nuclear Launch Codes: ")
 		if sure == "yes":
 			data = []
